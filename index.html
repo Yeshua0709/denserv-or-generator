@@ -367,9 +367,10 @@
 
     function downloadPDF() {
       const element = preparePreview();
+      const caseNumber = document.getElementById('caseNumber').value;
       const opt = {
         margin: 0.2,
-        filename: 'dental-or.pdf',
+        filename: `dental-case-${caseNumber}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
