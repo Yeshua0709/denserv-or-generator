@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dental OR Generator</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --background-color: #f8f9fa;
+      --border-color: #dee2e6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--background-color);
+      color: var(--primary-color);
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: var(--primary-color);
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 2em;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: var(--secondary-color);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .preview-container {
+      background: white;
+      padding: 40px;
+      margin-top: 30px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .header-text {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header-text h3 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+
+    .header-logo {
+      max-width: 100px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+
+    .case-info {
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .right-align {
+      text-align: right;
+    }
+
+    .total-row td:last-child {
+      border-top: 2px solid var(--primary-color);
+      font-weight: bold;
+    }
+
+    /* Styles specifically for the preview/PDF table */
+    #or-preview th {
+      background-color: #1158a6; /* New background color */
+      color: white; /* Ensure text remains readable */
+    }
+    #or-preview th,
+    #or-preview td {
+      font-size: 12px; /* Smaller font size for PDF table */
+      padding: 8px; /* Adjust padding for smaller font */
+    }
+
+    /* Style for footer labels in the preview/PDF */
+    #or-preview tfoot td.right-align {
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="date"] {
+        font-size: 14px;
+      }
+
+      .preview-container {
+        padding: 20px;
+      }
+    }
+
+    .section-container{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>OR Generator</h2>
+    <div class="section">
+      <label>Dental Case Number: <input type="text" id="caseNumber" value="1"></label>
+      <label>Case Created: <input type="date" id="caseCreated" onchange="setDefaultDate()"></label>
+      <label>OR Issued: <input type="date" id="orIssued" readonly></label>
+      <label>Doctor's Name: <input type="text" id="doctorName"></label>
+      <label>Patient's Name: <input type="text" id="patientName"></label>
+    </div>
+
+    <div class="section">
+        <div class="section-container">
+            <h3>Items</h3>
+            <button onclick="addItem()">Add Item</button>
+        </div>
+
+      <div style="overflow-x: auto;">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Date</th>
+              <th>Pontics</th>
+              <th>Items</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="itemsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Remaining Payable: <input type="number" id="remaining" oninput="calculateBalance()"></label>
+      <label>Amount Paid: <input type="number" id="paid" oninput="calculateBalance()"></label>
+      <label>Balance: <input type="number" id="balance" readonly></label>
+      <button style="width:100%;" onclick="downloadPDF()">Save as PDF</button>
+    </div>
+
+    <div id="preview-container" style="display: none;">
+      <div id="or-preview"></div>
+    </div>
+  </div>
+
+  <script>
+    let itemCount = 0;
+
+    function setDefaultDate() {
+      const date = document.getElementById('caseCreated').value;
+      document.getElementById('orIssued').value = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('.item-date').forEach(input => input.value = date);
+    }
+
+    function addItem() {
+      itemCount++;
+      const table = document.getElementById('itemsBody');
+      const row = table.insertRow();
+      row.innerHTML = `
+        <td>${itemCount}</td>
+        <td><input type="date" class="item-date"></td>
+        <td><input type="text" class="pontics"></td>
+        <td><input type="text" class="item-name"></td>
+        <td><input type="number" class="qty" value="1" oninput="updateAmount(this)"></td>
+        <td><input type="number" class="rate" value="0" oninput="updateAmount(this)"></td>
+        <td><input type="number" class="amount" readonly></td>
+      `;
+      setDefaultDate();
+    }
+
+    function updateAmount(elem) {
+      const row = elem.parentElement.parentElement;
+      const qty = row.querySelector('.qty').value || 0;
+      const rate = row.querySelector('.rate').value || 0;
+      row.querySelector('.amount').value = qty * rate;
+      calculateTotal();
+    }
+
+    function calculateTotal() {
+      let total = 0;
+      document.querySelectorAll('.amount').forEach(input => {
+        total += Number(input.value || 0);
+      });
+      document.getElementById('remaining').value = total;
+      calculateBalance();
+    }
+
+    function calculateBalance() {
+      const remaining = Number(document.getElementById('remaining').value || 0);
+      const paid = Number(document.getElementById('paid').value || 0);
+      document.getElementById('balance').value = remaining - paid;
+    }
+
+    function preparePreview() {
+      const doctor = document.getElementById('doctorName').value;
+      const patient = document.getElementById('patientName').value;
+      const created = document.getElementById('caseCreated').value;
+      const issued = document.getElementById('orIssued').value;
+
+      let total = 0;
+      let itemsHTML = '';
+      document.querySelectorAll('#itemsBody tr').forEach((row, index) => {
+        const inputs = row.querySelectorAll('input');
+        const date = inputs[0].value;
+        const pontics = inputs[1].value;
+        const item = inputs[2].value;
+        const qty = inputs[3].value;
+        const rate = inputs[4].value;
+        const amount = Number(inputs[5].value || 0);
+        
+        total += amount;
+        itemsHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${date}</td>
+            <td>${pontics}</td>
+            <td>${item}</td>
+            <td>${qty}</td>
+            <td>${rate}</td>
+            <td>${amount}</td>
+          </tr>
+        `;
+      });
+
+      const remaining = document.getElementById('remaining').value;
+      const paid = document.getElementById('paid').value;
+      const balance = document.getElementById('balance').value;
+
+      const preview = document.getElementById('or-preview');
+      preview.innerHTML = `
+        <div class="header-text">
+          <img src="denserv-logo.png" alt="Denserv Dental Laboratory Logo" class="header-logo">
+          <p>Unit A ECT Bldg, Lot 16 Del Pillar Village, Bayan Luma 6 City of Imus, Cavite</p>
+          <p>Contact No. (046) 471-76-73, Mobile No. Smart: 0919-282-9884, Globe: 0917-708-7181, Sun: 0923-878-44</p>
+          <p>Tin Registration No. 227-418-086-001</p>
+        </div>
+        <div class="case-info">
+          <p><strong>Dental Case Number:</strong> ${document.getElementById('caseNumber').value}</p>
+          <p><strong>Case Created:</strong> ${created}</p>
+          <p><strong>OR Issued:</strong> ${issued}</p>
+          <p><strong>Doctor's Name:</strong> ${doctor}</p>
+          <p><strong>Patient's Name:</strong> ${patient}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Date</th>
+              <th>Pontics</th>
+              <th>Items</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHTML}</tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="6" class="right-align"><strong>Total</strong></td>
+              <td>${total}</td>
+            </tr>
+            <tr>
+              <td colspan="6" class="right-align"><strong>Remaining Payable</strong></td>
+              <td>${remaining}</td>
+            </tr>
+            <tr>
+              <td colspan="6" class="right-align"><strong>Amount Paid</strong></td>
+              <td>${paid}</td>
+            </tr>
+            <tr>
+              <td colspan="6" class="right-align"><strong>Balance</strong></td>
+              <td>${balance}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+      return preview;
+    }
+
+    function downloadPDF() {
+      const element = preparePreview();
+      const opt = {
+        margin: 0.2,
+        filename: 'dental-or.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+      
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // Set default date on page load
+    document.getElementById('orIssued').value = new Date().toISOString().split('T')[0];
+  </script>
+</body>
+</html>
