@@ -220,7 +220,9 @@
     </div>
 
     <div class="section">
-      <label>Remaining Payable: <input type="number" id="remaining" oninput="calculateBalance()"></label>
+      <label>Balance: <input type="number" id="initialBalance" value="0" oninput="calculateTotal()"></label>
+      <label>Remaining Payable: <input type="number" id="remaining" readonly></label>
+      <label>Deposit: <input type="number" id="deposit" value="0" oninput="calculateBalance()"></label>
       <label>Amount Paid: <input type="number" id="paid" oninput="calculateBalance()"></label>
       <label>Balance: <input type="number" id="balance" readonly></label>
       <button style="width:100%;" onclick="downloadPDF()">Save as PDF</button>
@@ -269,14 +271,18 @@
       document.querySelectorAll('.amount').forEach(input => {
         total += Number(input.value || 0);
       });
-      document.getElementById('remaining').value = total;
+      const balance = Number(document.getElementById('initialBalance').value || 0);
+      const remainingPayable = total + balance;
+      document.getElementById('remaining').value = remainingPayable;
       calculateBalance();
     }
 
     function calculateBalance() {
       const remaining = Number(document.getElementById('remaining').value || 0);
       const paid = Number(document.getElementById('paid').value || 0);
-      document.getElementById('balance').value = remaining - paid;
+      const deposit = Number(document.getElementById('deposit').value || 0);
+      const totalPaid = paid + deposit;
+      document.getElementById('balance').value = remaining - totalPaid;
     }
 
     function preparePreview() {
@@ -348,15 +354,23 @@
               <td>${total}</td>
             </tr>
             <tr>
+              <td colspan="6" class="right-align"><strong>Remaining Balance</strong></td>
+              <td>${document.getElementById('initialBalance').value || 0}</td>
+            </tr>
+            <tr>
               <td colspan="6" class="right-align"><strong>Remaining Payable</strong></td>
               <td>${remaining}</td>
+            </tr>
+            <tr>
+              <td colspan="6" class="right-align"><strong>Deposit</strong></td>
+              <td>${document.getElementById('deposit').value || 0}</td>
             </tr>
             <tr>
               <td colspan="6" class="right-align"><strong>Amount Paid</strong></td>
               <td>${paid}</td>
             </tr>
             <tr>
-              <td colspan="6" class="right-align"><strong>Balance</strong></td>
+              <td colspan="6" class="right-align"><strong>Total Balance</strong></td>
               <td>${balance}</td>
             </tr>
           </tfoot>
