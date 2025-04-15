@@ -140,14 +140,35 @@
     }
 
     /* Styles specifically for the preview/PDF table */
-    #or-preview th {
-      background-color: #1158a6; /* New background color */
-      color: white; /* Ensure text remains readable */
+    #or-preview {
+      font-size: 11px; /* Base font size for the preview */
     }
+
+    #or-preview .header-logo {
+      filter: grayscale(100%); /* Make logo grayscale */
+    }
+
+    #or-preview th {
+      background-color: transparent;
+      color: black;
+      border-bottom: 2px solid #000;
+    }
+
     #or-preview th,
     #or-preview td {
-      font-size: 12px; /* Smaller font size for PDF table */
-      padding: 8px; /* Adjust padding for smaller font */
+      font-size: 10px;
+      padding: 6px;
+    }
+
+    #or-preview .case-info {
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    #or-preview .header-text p {
+      font-size: 10px;
+      line-height: 1.3;
+      margin: 2px 0;
     }
 
     /* Style for footer labels in the preview/PDF */
@@ -180,6 +201,19 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .section button {
+      margin-top: 10px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .button-group button {
+      flex: 1;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
@@ -225,7 +259,10 @@
       <label>Deposit: <input type="number" id="deposit" value="0" oninput="calculateBalance()"></label>
       <label>Amount Paid: <input type="number" id="paid" oninput="calculateBalance()"></label>
       <label>Balance: <input type="number" id="balance" readonly></label>
-      <button style="width:100%;" onclick="downloadPDF()">Save as PDF</button>
+      <div class="button-group">
+        <button onclick="downloadPDF()">Save as PDF</button>
+        <button onclick="downloadTXT()">Save as TXT</button>
+      </div>
     </div>
 
     <div id="preview-container" style="display: none;">
@@ -387,10 +424,94 @@
         filename: `dental-case-${caseNumber}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
       };
       
       html2pdf().set(opt).from(element).save();
+    }
+
+    function downloadTXT() {
+      const caseNumber = document.getElementById('caseNumber').value;
+      const doctor = document.getElementById('doctorName').value;
+      const patient = document.getElementById('patientName').value;
+      const created = document.getElementById('caseCreated').value;
+      const issued = document.getElementById('orIssued').value;
+      
+      let content = [];
+      const width = 75; // Total width of the text document
+      
+      // Header - Centered text
+      const headerLines = [
+        "DENSERV DENTAL LAB",
+        "Unit A ECT Bldg, Lot 16 Del Pillar Village, Bayan Luma 6 City of Imus, Cavite",
+        "Contact No. (046) 471-76-73",
+        "Mobile No. Smart: 0919-282-9884, Globe: 0917-708-7181, Sun: 0923-878-44",
+        "Tin Registration No. 227-418-086-001"
+      ];
+
+      // Center each header line
+      headerLines.forEach(line => {
+        const padding = Math.max(0, Math.floor((width - line.length) / 2));
+        content.push(" ".repeat(padding) + line);
+      });
+      
+      content.push("\n");
+      
+      // Case Info
+      content.push(`Dental Case Number: ${caseNumber}`);
+      content.push(`Case Created: ${created}`);
+      content.push(`OR Issued: ${issued}`);
+      content.push(`Doctor's Name: ${doctor}`);
+      content.push(`Patient's Name: ${patient}`);
+      content.push("\n");
+      
+      // Table Header
+      content.push("No.  Date        Pontics     Items                Qty   Rate      Total");
+      content.push("-".repeat(75));
+      
+      // Table Content
+      let total = 0;
+      document.querySelectorAll('#itemsBody tr').forEach((row, index) => {
+        const inputs = row.querySelectorAll('input');
+        const date = inputs[0].value;
+        const pontics = (inputs[1].value || "").padEnd(10);
+        const item = (inputs[2].value || "").padEnd(18);
+        const qty = (inputs[3].value || "").toString().padStart(4);
+        const rate = (inputs[4].value || "").toString().padStart(8);
+        const amount = Number(inputs[5].value || 0);
+        total += amount;
+        
+        content.push(
+          `${(index + 1).toString().padEnd(5)}${date}  ${pontics} ${item} ${qty} ${rate} ${amount.toString().padStart(9)}`
+        );
+      });
+      
+      content.push("-".repeat(75));
+      
+      // Totals
+      const balance = Number(document.getElementById('initialBalance').value || 0);
+      const remaining = Number(document.getElementById('remaining').value || 0);
+      const deposit = Number(document.getElementById('deposit').value || 0);
+      const paid = Number(document.getElementById('paid').value || 0);
+      const finalBalance = Number(document.getElementById('balance').value || 0);
+      
+      content.push(`${"Total:".padStart(66)}${total.toString().padStart(9)}`);
+      content.push(`${"Remaining Balance:".padStart(66)}${balance.toString().padStart(9)}`);
+      content.push(`${"Remaining Payable:".padStart(66)}${remaining.toString().padStart(9)}`);
+      content.push(`${"Deposit:".padStart(66)}${deposit.toString().padStart(9)}`);
+      content.push(`${"Amount Paid:".padStart(66)}${paid.toString().padStart(9)}`);
+      content.push(`${"Total Balance:".padStart(66)}${finalBalance.toString().padStart(9)}`);
+      
+      // Create and download the text file
+      const blob = new Blob([content.join('\n')], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dental-case-${caseNumber}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     }
 
     // Set default date on page load
