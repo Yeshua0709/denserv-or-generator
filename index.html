@@ -223,8 +223,7 @@
     <h2>OR Generator</h2>
     <div class="section">
       <label>Dental Case Number: <input type="text" id="caseNumber" value="1"></label>
-      <label>Case Created: <input type="date" id="caseCreated" onchange="setDefaultDate()"></label>
-      <label>OR Issued: <input type="date" id="orIssued" readonly></label>
+      <label>Date Delivered: <input type="date" id="caseCreated" onchange="setDefaultDate()"></label>
       <label>Doctor's Name: <input type="text" id="doctorName"></label>
       <label>Patient's Name: <input type="text" id="patientName"></label>
     </div>
@@ -275,7 +274,6 @@
 
     function setDefaultDate() {
       const date = document.getElementById('caseCreated').value;
-      document.getElementById('orIssued').value = new Date().toISOString().split('T')[0];
       document.querySelectorAll('.item-date').forEach(input => input.value = date);
     }
 
@@ -326,7 +324,6 @@
       const doctor = document.getElementById('doctorName').value;
       const patient = document.getElementById('patientName').value;
       const created = document.getElementById('caseCreated').value;
-      const issued = document.getElementById('orIssued').value;
 
       let total = 0;
       let itemsHTML = '';
@@ -367,8 +364,7 @@
         </div>
         <div class="case-info">
           <p><strong>Dental Case Number:</strong> ${document.getElementById('caseNumber').value}</p>
-          <p><strong>Case Created:</strong> ${created}</p>
-          <p><strong>OR Issued:</strong> ${issued}</p>
+          <p><strong>Date Delivered:</strong> ${created}</p>
           <p><strong>Doctor's Name:</strong> ${doctor}</p>
           <p><strong>Patient's Name:</strong> ${patient}</p>
         </div>
@@ -435,8 +431,7 @@
       const doctor = document.getElementById('doctorName').value;
       const patient = document.getElementById('patientName').value;
       const created = document.getElementById('caseCreated').value;
-      const issued = document.getElementById('orIssued').value;
-      
+
       let content = [];
       const width = 75; // Total width of the text document
       
@@ -459,8 +454,7 @@
       
       // Case Info
       content.push(`Dental Case Number: ${caseNumber}`);
-      content.push(`Case Created: ${created}`);
-      content.push(`OR Issued: ${issued}`);
+      content.push(`Date Delivered: ${created}`);
       content.push(`Doctor's Name: ${doctor}`);
       content.push(`Patient's Name: ${patient}`);
       content.push("\n");
@@ -514,8 +508,6 @@
       document.body.removeChild(a);
     }
 
-    // Set default date on page load
-    document.getElementById('orIssued').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
 </html>
